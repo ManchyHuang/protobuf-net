@@ -115,8 +115,9 @@ namespace ProtoBuf.Serializers
                     return map[i].TypedValue;
                 }
             }
-            source.ThrowEnumException(ExpectedType, wireValue);
-            return null; // to make compiler happy
+            
+			// return first value from the enum
+            return map[0]; 
         }
         public void Write(object value, ProtoWriter dest)
         {
@@ -232,11 +233,10 @@ namespace ProtoBuf.Serializers
                         }
                         ctx.MarkLabel(tryNextGroup);
                     }
-                    // throw source.CreateEnumException(ExpectedType, wireValue);
-                    ctx.LoadReaderWriter();
-                    ctx.LoadValue(ExpectedType);
-                    ctx.LoadValue(wireValue);
-                    ctx.EmitCall(ctx.MapType(typeof(ProtoReader)).GetMethod("ThrowEnumException"));
+
+					// write the first value found in enum
+					Compiler.CodeLabel writeFirstValueValue = ctx.DefineLabel();
+					WriteEnumValue(ctx, typeCode, writeFirstValueValue, @continue, values[0], @result);
                     ctx.MarkLabel(@continue);
                     ctx.LoadValue(result);
                 }
